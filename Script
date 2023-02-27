@@ -1,0 +1,68 @@
+#import libraries
+import numpy as np 
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+from textblob import TextBlob
+from vaderSentiment import vaderSentiment
+import tensorflow as tf
+
+#load the data
+data = pd.read_csv('data.csv')
+
+#preprocess the data
+X = data.drop(['label'], axis=1)
+y = data['label']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+#build the model
+#supervised machine learning algorithms
+svm = SVC(kernel='linear', random_state=42)
+svm.fit(X_train, y_train)
+#naive bayes
+nb = GaussianNB()
+nb.fit(X_train, y_train)
+#Random Forest
+rf = RandomForestClassifier(n_estimators=100, random_state=42)
+rf.fit(X_train, y_train)
+
+#make predictions
+svm_pred = svm.predict(X_test)
+nb_pred = nb.predict(X_test)
+rf_pred = rf.predict(X_test)
+
+#evaluate the model
+svm_score = accuracy_score(y_test, svm_pred)
+nb_score = accuracy_score(y_test, nb_pred)
+rf_score = accuracy_score(y_test, rf_pred)
+
+#natural language processing
+blob = TextBlob(X_test)
+sentiment = blob.sentiment
+
+#vader sentiment
+score = vaderSentiment(X_test)
+
+#computer vision
+model = tf.keras.models.Sequential()
+model.add(tf.keras.layers.Conv2D(32, (3,3), activation='relu', input_shape=(64,64,3)))
+model.add(tf.keras.layers.MaxPooling2D(2,2))
+model.add(tf.keras.layers.Flatten())
+model.add(tf.keras.layers.Dense(128, activation='relu'))
+model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+model.fit(X_train, y_train, epochs=10)
+
+#evaluate the model
+model_score = model.evaluate(X_test, y_test)
+
+#print results
+print("SVM Score: ", svm_score)
+print("Naive Bayes Score: ", nb_score)
+print("Random Forest Score: ", rf_score)
+print("Sentiment Score: ", sentiment)
+print("Vader Sentiment Score: ", score)
+print("Computer Vision Score: ", model_score)
